@@ -30,7 +30,7 @@ public class Paint extends MouseAdapter {
 	public JToggleButton botaoLinha;
 	private int x0;
 	private int y0;
-	
+
 	public static void main(String[] args) {
 		Paint programa = new Paint();
 	}
@@ -39,11 +39,10 @@ public class Paint extends MouseAdapter {
 		JFrame janela = new JFrame();
 		JPanel painelPrincipal = new JPanel();
 		painelPrincipal.setLayout(new BorderLayout());
-		
+
 		this.figuras = new ArrayList<Figura>();
-		
-		barraDeFerramentas = new JToolBar("Barra de Ferramentas");
-		grupo = new ButtonGroup();
+
+		addMenu();
 		botaoRetangulo = new JToggleButton("Retangulo");
 		botaoRetangulo.addActionListener(new ActionListener() {
 			@Override
@@ -51,10 +50,8 @@ public class Paint extends MouseAdapter {
 				botaoSelecionado = botaoRetangulo;
 			}
 		});
-		grupo.add(botaoRetangulo);
-		barraDeFerramentas.add(botaoRetangulo);
-		botaoRetangulo.getModel().setPressed(true);
-		
+		btnRetangulo();
+
 		botaoElipse = new JToggleButton("Elipse");
 		botaoElipse.addActionListener(new ActionListener() {
 			@Override
@@ -62,10 +59,8 @@ public class Paint extends MouseAdapter {
 				botaoSelecionado = botaoElipse;
 			}
 		});
-		grupo.add(botaoElipse);
-		barraDeFerramentas.add(botaoElipse);
-		botaoElipse.getModel().setPressed(false);
-		
+		btnElipse();
+
 		botaoLinha = new JToggleButton("Linha");
 		botaoLinha.addActionListener(new ActionListener() {
 			@Override
@@ -73,17 +68,14 @@ public class Paint extends MouseAdapter {
 				botaoSelecionado = botaoLinha;
 			}
 		});
-		grupo.add(botaoLinha);
-		barraDeFerramentas.add(botaoLinha);
-		botaoLinha.getModel().setPressed(false);
-		
+		btnLinha();
+
 		botaoSelecionado = botaoRetangulo;
-		
+
 		barraDeFerramentas.setFloatable(false);
-		
-		
+
 		painelPrincipal.add(barraDeFerramentas, BorderLayout.PAGE_START);
-		
+
 		areaDeDesenho = new JPanel() {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -118,69 +110,90 @@ public class Paint extends MouseAdapter {
 			}
 		};
 		painelPrincipal.add(areaDeDesenho, BorderLayout.CENTER);
-		
-		areaDeDesenho.setPreferredSize(new Dimension(600, 400));
-		
-		areaDeDesenho.addMouseListener(this);
-		areaDeDesenho.addMouseMotionListener(this);
-		
+
+		preparaAreadesenho();
+		addJanela(janela, painelPrincipal);
+	}
+
+	private void addMenu() {
+		barraDeFerramentas = new JToolBar("Barra de Ferramentas");
+		grupo = new ButtonGroup();
+	}
+
+	private void addJanela(JFrame janela, JPanel painelPrincipal) {
 		janela.setContentPane(painelPrincipal);
 		janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		janela.pack();
 		janela.setVisible(true);
 	}
-	
+
+	private void preparaAreadesenho() {
+		areaDeDesenho.setPreferredSize(new Dimension(600, 400));
+		areaDeDesenho.addMouseListener(this);
+		areaDeDesenho.addMouseMotionListener(this);
+	}
+
+	private void btnLinha() {
+		grupo.add(botaoLinha);
+		barraDeFerramentas.add(botaoLinha);
+		botaoLinha.getModel().setPressed(false);
+	}
+
+	private void btnElipse() {
+		grupo.add(botaoElipse);
+		barraDeFerramentas.add(botaoElipse);
+		botaoElipse.getModel().setPressed(false);
+	}
+
+	private void btnRetangulo() {
+		grupo.add(botaoRetangulo);
+		barraDeFerramentas.add(botaoRetangulo);
+		botaoRetangulo.getModel().setPressed(true);
+	}
+
 	@Override
 	public void mousePressed(MouseEvent e) {
 		this.x0 = e.getX();
 		this.y0 = e.getY();
 	}
-	
+
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		int x1 = e.getX();
 		int y1 = e.getY();
 		if (botaoSelecionado == botaoRetangulo) {
-			int xc = Math.min(this.x0, x1);
-			int yc = Math.min(this.y0, y1);
-			int largura = Math.abs(x1 - this.x0);
-			int altura = Math.abs(y1 - this.y0);
-			tmp = new Figura(Figura.RETANGULO, xc, yc, xc + largura, yc + altura);
+			tmp = criarFigura(x1, y1, Figura.RETANGULO);
 		} else if (botaoSelecionado == botaoLinha) {
 			tmp = new Figura(Figura.LINHA, this.x0, this.y0, x1, y1);
 		} else {
-			int xc = Math.min(this.x0, x1);
-			int yc = Math.min(this.y0, y1);
-			int largura = Math.abs(x1 - this.x0);
-			int altura = Math.abs(y1 - this.y0);
-			tmp = new Figura(Figura.ELIPSE, xc, yc, xc + largura, yc + altura);
+			tmp = criarFigura(x1, y1, Figura.ELIPSE);
 		}
 		areaDeDesenho.repaint();
 	}
-	
+
+	private Figura criarFigura(int x1, int y1, int tipoFigura) {
+		int xc = Math.min(this.x0, x1);
+		int yc = Math.min(this.y0, y1);
+		int largura = Math.abs(x1 - this.x0);
+		int altura = Math.abs(y1 - this.y0);
+		return new Figura(tipoFigura, xc, yc, xc + largura, yc + altura);
+	}
+
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int x1 = e.getX();
 		int y1 = e.getY();
 		Figura f;
 		if (botaoSelecionado == botaoRetangulo) {
-			int xc = Math.min(this.x0, x1);
-			int yc = Math.min(this.y0, y1);
-			int largura = Math.abs(x1 - this.x0);
-			int altura = Math.abs(y1 - this.y0);
-			f = new Figura(Figura.RETANGULO, xc, yc, xc + largura, yc + altura);
+			f = criarFigura(x1, y1, Figura.RETANGULO);
 		} else if (botaoSelecionado == botaoLinha) {
 			f = new Figura(Figura.LINHA, this.x0, this.y0, x1, y1);
 		} else {
-			int xc = Math.min(this.x0, x1);
-			int yc = Math.min(this.y0, y1);
-			int largura = Math.abs(x1 - this.x0);
-			int altura = Math.abs(y1 - this.y0);
-			f = new Figura(Figura.ELIPSE, xc, yc, xc + largura, yc + altura);
+			f = criarFigura(x1, y1, Figura.ELIPSE);
 		}
 		figuras.add(f);
 		tmp = null;
 		areaDeDesenho.repaint();
 	}
-	
+
 }
